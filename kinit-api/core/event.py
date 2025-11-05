@@ -5,11 +5,8 @@
 # @File           : event.py
 # @IDE            : PyCharm
 # @desc           : 全局事件
-import asyncio
-import json
 from contextlib import asynccontextmanager
 
-import aiohttp
 import requests
 from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -17,8 +14,7 @@ from redis import asyncio as aioredis
 from redis.exceptions import AuthenticationError, TimeoutError, RedisError
 from sqlalchemy.exc import ProgrammingError
 
-from application.settings import REDIS_DB_URL, MONGO_DB_URL, MONGO_DB_NAME, EVENTS, FB_VERIFY_MESSENGER_TOKEN, \
-    FB_VERIFY_INSTAGRAM_TOKEN
+from application.settings import REDIS_DB_URL, MONGO_DB_URL, MONGO_DB_NAME, EVENTS
 from core.logger import logger
 from utils.cache import Cache
 from utils.tools import import_modules_async
@@ -27,7 +23,6 @@ from utils.tools import import_modules_async
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await import_modules_async(EVENTS, "全局事件", app=app, status=True)
-    asyncio.create_task(queue_listener())
     yield
     await import_modules_async(EVENTS, "全局事件", app=app, status=False)
     print("🧹 FastAPI shutting down...")
@@ -93,43 +88,9 @@ async def connect_redis(app: FastAPI, status: bool):
         await app.state.redis.close()
 
 
-async def queue_listener():
-    redis = aioredis.from_url(REDIS_DB_URL, decode_responses=True, health_check_interval=1)
-    try:
-        response = await redis.ping()
-        if response:
-            print("queue_listener Redis 连接成功")
-        else:
-            print("queue_listener Redis 连接失败")
-    except AuthenticationError as e:
-        raise AuthenticationError(f"Redis 连接认证失败，用户名或密码错误: {e}")
-    except TimeoutError as e:
-        raise TimeoutError(f"Redis 连接超时，地址或者端口错误: {e}")
-    except RedisError as e:
-        raise RedisError(f"Redis 连接失败: {e}")
-    while True:
-        # 从两个流中读取消息
-        for stream_name, token in [("fb_messages", FB_VERIFY_MESSENGER_TOKEN),
-                                   ("ig_messages", FB_VERIFY_INSTAGRAM_TOKEN)]:
-            msgs = await redis.xread({stream_name: "$"}, block=2000, count=1)
-            if not msgs:
-                continue
-
-            for _, entries in msgs:
-                for msg_id, msg_data in entries:
-                    event = json.loads(msg_data[b"data"].decode())
-                    sender_id = event.get("sender", {}).get("id")
-                    message = event.get("message", {}).get("text", "")
-                    # 自动回复文本
-                    reply_text = f"你说的是: {message}"
-                    # TODO coze发送消息
-                    await send_message(sender_id, reply_text, token)
-                    print(f"✅ 已回复 {sender_id}: {reply_text}")
-
-
 async def send_fb_message(message: str, recipient_id: str, auth_toke: str):
     headers = {
-        'Authorization': 'Bearer EAAVL7FvW8ogBP0ebs0BQUbEQAE4DIbALtNbJY8vLscSe2BIyHdGKeZAREwXPHJtrGVeCzAqCKhyYWngMNmRnJEJF4bTPoVJiTZCwrpabYMKbrPOASMEeldIJMBclyJcbZBZAkw5vjlONUTOPHADanv2lDhwIeeD8CjhLwwDLsOPiPgqtAtJohtRN2eT55U3JbnCRKsxyNgZDZD',
+        'Authorization': f'Bearer {auth_toke}',
         'Content-Type': 'application/json',
     }
     if not message or not recipient_id or not auth_toke:
@@ -144,41 +105,6 @@ async def send_fb_message(message: str, recipient_id: str, auth_toke: str):
     logger.info(f"facebook request: {json_data}")
     response = requests.post('https://graph.facebook.com/v21.0/me/messages', headers=headers, json=json_data)
     logger.info(f"facebook response: {response.json()}")
-
-
-
-async def send_message(recipient_id: str, text: str, page_access_token: str, is_instagram: bool = False,
-                       ig_business_id: str = None):
-    """
-    自动判断并发送消息到 FB 或 IG。
-
-    :param recipient_id: 用户 ID（PSID 或 IG 用户 ID）
-    :param text: 要发送的文本消息
-    :param page_access_token: 页面/IG 专页的 access_token
-    :param is_instagram: 是否为 Instagram 用户
-    :param ig_business_id: Instagram business account id（仅 IG 必须）
-    """
-    if is_instagram:
-        if not ig_business_id:
-            raise ValueError("Instagram 消息必须提供 ig_business_id")
-        url = f"https://graph.facebook.com/v21.0/{ig_business_id}/messages"
-    else:
-        url = "https://graph.facebook.com/v21.0/me/messages"
-
-    params = {"access_token": page_access_token}
-    payload = {
-        "recipient": {"id": recipient_id},
-        "message": {"text": text}
-    }
-
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, params=params, json=payload) as resp:
-            try:
-                res = await resp.json()
-            except Exception:
-                res = await resp.text()
-            logger.info(f"Graph API Response [{resp.status}]: {json.dumps(res, ensure_ascii=False)}")
-            return res
 
 
 async def connect_mongo(app: FastAPI, status: bool):

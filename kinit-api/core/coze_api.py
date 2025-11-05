@@ -16,9 +16,10 @@ class CozeApi:
     def __init__(self, COZE_TOKEN=None):
         self.coze = Coze(auth=TokenAuth(token=COZE_TOKEN), base_url=coze_api_base)
 
-    def send_foreign_trade_workflow(self, message: str, user_id: str | int, sales_repp_phone: str, sales_agent: str):
+    def send_foreign_trade_workflow(self, message: str, user_id: str | int, sales_repp_phone: str, sales_agent: str,
+                                    platform: str = "message"):
         """
-        外贸工作流
+
         """
         workflow = self.coze.workflows.runs.create(
             workflow_id='7568320907665309722',
@@ -27,6 +28,7 @@ class CozeApi:
                 "user_id": user_id,
                 "sales_repp_phone": sales_repp_phone or '0',
                 "sales_agent": sales_agent or 'Ross Company Intelligent Assistant',
+                "platform": platform or "message"
             })
         logger.info(workflow)
         data = json.loads(workflow.data)

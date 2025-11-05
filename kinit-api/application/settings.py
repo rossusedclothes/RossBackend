@@ -6,6 +6,7 @@
 # @desc           : 主配置文件
 
 import os
+
 from fastapi.security import OAuth2PasswordBearer
 
 """
@@ -93,7 +94,6 @@ STATIC_URL = "/media"
 STATIC_DIR = "static"
 STATIC_ROOT = os.path.join(BASE_DIR, STATIC_DIR)
 
-
 """
 跨域解决
 详细解释：https://cloud.tencent.com/developer/article/1886114
@@ -158,5 +158,40 @@ SUBSCRIBE = 'kinit_queue'
 facebook message verify token 
 """
 FB_VERIFY_TOKEN = "ROSS_FB_GANJINGPAOLU_8848"
-FB_VERIFY_MESSENGER_TOKEN = "EAAVL7FvW8ogBP2TsvNuWEZAwgB20iZAskpwdlGg6KYaN8823ZBrXp8prWbf71t21GzKhe64ZBZBstly7NDCKw35qKmL5OMHtwrYdeVfzZCtQmhPn9zvaqbclN4TV2iFUKJb6u5lL0Mbyjljv2Cn9PCEsZAZCyAGoO6M3lDZAa6lwIXbOxsx0bWNv1iYbuZB3NAg9QB0hswG3U6fQZDZD"
-FB_VERIFY_INSTAGRAM_TOKEN = "EAAVL7FvW8ogBPyFqx8XwE1stt2PdReAZAd1JFS0jYIVyGOE6Lc3x4sUF2rBmWRPOOsq7vl27U9ujTDTzBzKdFMaNjorClMeCHT8lQy7UqP5ZCUBigAjT0bDkpL3uaqgeHMbmVeAnunKpHkCg0ZBOZCQPxy5vJqZCUJ4kxZBfCaRv5YbQjKZCeI8GGFtVLvGLNmCI1CaoEZC10gZDZD"
+"""
+facebook message verify token dict
+config url: https://developers.facebook.com/apps/1490853408731784/messenger/messenger_api_settings/?business_id=722672637426056
+config setup
+add public page,copy id and token
+"""
+FB_VERIFY_MESSENGER_TOKEN_DICT = [
+    {
+        "id": "711895252004423",  # 公共主页id
+        "name": "Palmdazzl AI Mouse",  # 公共主页名称
+        "platform": "message", # message
+        "sales_agent": "Ross Company Assistant", # 业务员人员名称
+        "sales_repp_phone":'+86 139 1030 5677',# 业务员人员电话
+        "token": "EAAVL7FvW8ogBP9Ov0YU6DafrUfOsCfNsA6ZBwY73qwQQ4aqnzoapZAz8SRarQPPZAlYuXdmqpZBY2H62OEhoUV8QCZCUu7MjoHmqdcgLfW6ZA1IYgVio4cWeZCAN7ZAAJxfDg9AP3FbwGYMgTyjSa3lc6m8jzBgYNRsChZBQjVZCuaDRE6HzkRwXjUtiZCFadj4fC8f7QJ3kOVtugZDZD",
+    },
+    {
+        "id": "590821104122237",  # 公共主页id
+        "name": "Elvis Usedclothing1", # 公共主页名称
+        "platform": "message", #  message
+        "sales_agent": "Ross Company Assistant",  # 业务员人员名称
+        "sales_repp_phone": '+86 139 1030 5677',  # 业务员人员电话
+        "token": "EAAVL7FvW8ogBP6Kv47OtLMNpxGLaaBU9RgYPziOmTZCrLlt8v35co2goTZA5SjRVZBdHtdcT1GGzcElX25BUoEZBQ9aBqcmI96bm1jrAmrmVngOZCwT2kBUm7hwiRJqSZAXYgRW6at0foWnHEsCM13V8ofjCWqRatZCeK4ZClle5V8icXZC0XvVZCW4LEohxEueOa5GoWuD5k68AZDZD"
+    },
+
+    ###################################################
+    #                   Instagram                     #
+    ###################################################
+    {
+        "id": "711895252004423", # 公共主页id
+        "name": "Palmdazzl AI Mouse", # 公共主页名称
+        "platform": "Instagram", # instagram
+        "business_id": "722672637426056",  # 业务id
+        "sales_agent": "Ross Company Assistant",  # 业务员人员名称
+        "sales_repp_phone": '+86 139 1030 5677',  # 业务员人员电话
+        "token": "EAAVL7FvW8ogBPzXfU8aKD4lHZAsB6Dmi18ZA2OC8Kc98ZArZC8kNxllczKM6zI609Do2V05IHJiVPgu7n3IBZBgcd34rBUKaqbDsCryko0ZCuUYJmTvMPRFg3cgJvuzxh1XpLMdb5Mybd4m5r7tzLDgyso3bT5QSvlT2RZCNhWAVa2ZAhHUpsw9wqW0DFyYzLLTPreUHjCin9AZDZD"
+    }
+]
